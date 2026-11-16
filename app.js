@@ -56,7 +56,7 @@ let appConfig = {
     { id: 'yt45', cost: 10, fullName: '45 Mins YouTube Pass', icon: '📺', desc: 'Watch school-appropriate YouTube during independent work for 45 mins.' },
     { id: 'ytfull', cost: 20, fullName: 'All Class Period YouTube', icon: '🎬', desc: 'Full class period YouTube pass during independent study time.' }
   ],
-  defaultAddAmount: 10,
+  defaultAddAmount: 1,
   presetBadges: [
     'Top Helper',
     '3-Week Streak',
@@ -159,7 +159,12 @@ async function initSupabase() {
   }
 
   try {
-    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // Use sessionStorage so closing the tab/browser forces a fresh password login
+    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: {
+        storage: window.sessionStorage
+      }
+    });
 
     // Check if student class viewer or teacher admin is already signed in
     const { data: { session } } = await sb.auth.getSession();
