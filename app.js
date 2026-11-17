@@ -751,10 +751,13 @@ function renderLeaderboard() {
             + Add
           </button>
         </div>
-        <div class="inline-flex items-center gap-1.5 bg-sky-50/90 border-2 border-sky-200 rounded-2xl p-1">
+        <div class="inline-flex flex-wrap items-center gap-1.5 bg-sky-50/90 border-2 border-sky-200 rounded-2xl p-1">
           <input id="custom-alltime-${s.id}" type="number" min="1" placeholder="pts"
             onkeydown="if(event.key==='Enter'){ event.preventDefault(); applyCustomAllTimeAdd('${s.id}'); }"
             class="w-16 px-2 py-1 rounded-xl bg-white border border-sky-300 text-xs font-extrabold text-slate-900 focus:outline-none" />
+          <input id="custom-alltime-reason-${s.id}" type="text" placeholder="Reason (optional)" aria-label="Reason for added balance (optional)"
+            onkeydown="if(event.key==='Enter'){ event.preventDefault(); applyCustomAllTimeAdd('${s.id}'); }"
+            class="w-40 px-2 py-1 rounded-xl bg-white border border-sky-300 text-xs font-semibold text-slate-900 focus:outline-none" />
           <button onclick="applyCustomAllTimeAdd('${s.id}')"
             class="px-3 py-1 rounded-xl bg-sky-500 hover:bg-sky-400 border-b-2 border-sky-700 text-white text-xs font-extrabold transition">
             + Balance
@@ -1007,6 +1010,7 @@ async function applyCustomAdd(studentId) {
 
 async function applyCustomAllTimeAdd(studentId) {
   const input = document.getElementById(`custom-alltime-${studentId}`);
+  const reason = (document.getElementById(`custom-alltime-reason-${studentId}`)?.value || '').trim();
   const delta = Number(input?.value);
   if (!delta || delta <= 0) {
     showToast('Enter a positive number of Balance points first.', 'amber');
@@ -1017,7 +1021,7 @@ async function applyCustomAllTimeAdd(studentId) {
   if (!s) return;
 
   s.allTimePoints += delta;
-  s.history.unshift(`${formatActivityTimestamp()} • +${delta} Balance pts awarded`);
+  s.history.unshift(`${formatActivityTimestamp()} • +${delta} Balance pts awarded${reason ? ` — ${reason}` : ''}`);
   playChime('add');
   renderAll();
 
