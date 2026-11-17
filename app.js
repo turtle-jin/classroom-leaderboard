@@ -340,6 +340,17 @@ function formatActivityTimestamp() {
   });
 }
 
+function getVisibleActivity(history) {
+  const entries = Array.isArray(history) ? history : [];
+  if (isAdmin) return entries;
+
+  // Legacy activity is stored as timestamped text rather than typed events.
+  return entries.filter(item => {
+    const action = String(item).split(' • ').slice(1).join(' • ') || String(item);
+    return !/^(?:Reassigned to Team\b|(?:Changed|Updated|Switched|Moved|Assigned)\b.*\b(?:team|house|avatar)\b|(?:Team|House|Avatar)\b.*\b(?:changed|updated|switched|reassigned)\b)/i.test(action.trim());
+  });
+}
+
 function escapeHtml(str) {
   return String(str ?? '')
     .replace(/&/g, '&amp;')
@@ -675,9 +686,10 @@ function renderLeaderboard() {
       `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-violet-50 text-violet-700 border border-violet-200 text-[11px] font-bold">⭐ ${escapeHtml(b)}${isAdmin ? ` <button type="button" onclick="event.stopPropagation(); removeBadgeFromStudent('${s.id}', '${escapeHtml(b)}')" title="Remove badge" class="ml-0.5 text-violet-400 hover:text-rose-600 font-extrabold">✕</button>` : ''}</span>`
     ).join('');
 
-    const recentActivityHtml = s.history?.[0]
-  ? `<div class="text-xs text-slate-400 truncate mt-1">${escapeHtml(s.history[0])}</div>`
-  : '';
+    const recentActivity = getVisibleActivity(s.history)[0];
+    const recentActivityHtml = recentActivity
+      ? `<div class="text-xs text-slate-400 truncate mt-1">${escapeHtml(recentActivity)}</div>`
+      : '';
 
     const badgePresetsHtml = (appConfig.presetBadges || []).map(b =>
       `<option value="${escapeHtml(b)}">⭐ ${escapeHtml(b)}</option>`
@@ -1495,8 +1507,9 @@ function openStudentModal(studentId) {
     }
   }
 
-  document.getElementById('modal-history').innerHTML = (s.history && s.history.length)
-    ? s.history.map(item => `<div class="px-3 py-2 rounded-2xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700">${escapeHtml(item)}</div>`).join('')
+  const visibleActivity = getVisibleActivity(s.history);
+  document.getElementById('modal-history').innerHTML = visibleActivity.length
+    ? visibleActivity.map(item => `<div class="px-3 py-2 rounded-2xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700">${escapeHtml(item)}</div>`).join('')
     : `<div class="text-xs text-slate-400">No recent activity recorded.</div>`;
 
   document.getElementById('student-modal').classList.remove('hidden');
